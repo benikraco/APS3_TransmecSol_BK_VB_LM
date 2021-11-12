@@ -1,34 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-A funcao 'plota' produz um gráfico da estrutura definida pela matriz de nos N 
-e pela incidencia Inc.
-
-Sugestao de uso:
-
-from funcoesTermosol import plota
-plota(N,Inc)
--------------------------------------------------------------------------------
-A funcao 'importa' retorna o numero de nos [nn], a matriz dos nos [N], o numero
-de membros [nm], a matriz de incidencia [Inc], o numero de cargas [nc], o vetor
-carregamento [F], o numero de restricoes [nr] e o vetor de restricoes [R] 
-contidos no arquivo de entrada.
-
-Sugestao de uso:
-    
-from funcoesTermosol import importa
-[nn,N,nm,Inc,nc,F,nr,R] = importa('entrada.xlsx')
--------------------------------------------------------------------------------
-A funcao 'geraSaida' cria um arquivo nome.txt contendo as reacoes de apoio Ft, 
-deslocamentos Ut, deformacoes Epsi, forcas Fi e tensoes Ti internas. 
-As entradas devem ser vetores coluna.
-
-Sugestao de uso:
-    
-from funcoesTermosol import geraSaida
-geraSaida(nome,Ft,Ut,Epsi,Fi,Ti)
--------------------------------------------------------------------------------
-
-"""
 def plota(N,Inc):
     # Numero de membros
     nm = len(Inc[:,0])
@@ -136,3 +106,25 @@ def geraSaida(nome,Ft,Ut,Epsi,Fi,Ti):
     f.write('\n\nTensoes internas [Pa]\n')
     f.write(str(Ti))
     f.close()
+
+
+# nn -> nós
+# N  -> matriz de nos
+# nm -> num de membros
+# Inc -> Matriz de incidencia [saída, chegada, área transversal[m2], módulo de elasticidade[Pa]]
+# nc -> num de cargas
+# F -> vetor carregamento
+# nr -> Numero de restricoes
+# R ->  Vetor com os graus de liberdade restritos
+import numpy as np
+
+[nn,N,nm,Inc,nc,F,nr,R] = importa("entrada.xlsx")
+
+# matriz de conectividade
+c = np.zeros((len(Inc), len(N[0])))
+for i in range(0, len(Inc)):
+    c[i][int(Inc[i][0]) - 1] = -1
+    c[i][int(Inc[i][1]) - 1] = 1
+
+c_transp = c.transpose()
+
