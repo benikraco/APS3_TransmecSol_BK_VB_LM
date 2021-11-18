@@ -1,11 +1,13 @@
+import numpy as np
+import xlrd
+# import matplotlib as mpl
+# import matplotlib.pyplot as plt
+
 # -*- coding: utf-8 -*-
 def plota(N,Inc):
     # Numero de membros
     nm = len(Inc[:,0])
     
-    import matplotlib as mpl
-    import matplotlib.pyplot as plt
-
 #    plt.show()
     fig = plt.figure()
     # Passa por todos os membros
@@ -25,9 +27,6 @@ def plota(N,Inc):
     plt.show()
     
 def importa(entradaNome):
-    
-    import numpy as np
-    import xlrd
     
     arquivo = xlrd.open_workbook(entradaNome)
     
@@ -116,7 +115,6 @@ def geraSaida(nome,Ft,Ut,Epsi,Fi,Ti):
 # F -> vetor carregamento
 # nr -> Numero de restricoes
 # R ->  Vetor com os graus de liberdade restritos
-import numpy as np
 
 [nn,N,nm,Inc,nc,F,nr,R] = importa("entrada.xlsx")
 
@@ -127,4 +125,31 @@ for i in range(0, len(Inc)):
     c[i][int(Inc[i][1]) - 1] = 1
 
 c_transp = c.transpose()
+
+# matriz de membros
+membros = np.matmul(N,c)
+
+def calculaL(x1, x2, y1, y2):
+    L = np.sqrt(((x2-x1)**2) + ((y2-y1)**2))
+    return L
+
+# L = np.linalg.norm(membros)
+# print(L)
+
+# matriz_L = np.zeros()
+# for i in range(0, len(matriz_L)):
+    
+
+
+# # norm, modulo de membros = L 
+# membros[:,0] # pegar coluna
+
+# matriz_se = np.zeros() #corrigir os valores de criação
+# for i in range(): #corrigir os valores de range
+#     for j in range(): #corrigir os valores de range
+#         matriz_se[i][j]
+
+# def matriz_se(e, a, l, m, e):
+#     return ((e*a)/l) * ((m_e*m_e.transpose())/(abs(m_e)**2))
+
 
