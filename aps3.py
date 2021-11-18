@@ -119,19 +119,89 @@ def geraSaida(nome,Ft,Ut,Epsi,Fi,Ti):
 [nn,N,nm,Inc,nc,F,nr,R] = importa("entrada.xlsx")
 
 # matriz de conectividade
-c = np.zeros((len(Inc), len(N[0])))
+C = np.zeros((len(Inc), len(N[0])))
 for i in range(0, len(Inc)):
-    c[i][int(Inc[i][0]) - 1] = -1
-    c[i][int(Inc[i][1]) - 1] = 1
+    C[i][int(Inc[i][0]) - 1] = -1
+    C[i][int(Inc[i][1]) - 1] = 1
 
-c_transp = c.transpose()
+# não funciona com C.transpose
+# c_transp = c.transpose()
+# o correto é C.T
 
-# matriz de membros
-membros = np.matmul(N,c)
+# matriz de conectividade transposta
+C_transp = C.T
 
-def calculaL(x1, x2, y1, y2):
-    L = np.sqrt(((x2-x1)**2) + ((y2-y1)**2))
-    return L
+# print(C)
+# print(C_transp)
+
+# matriz de membros e transposta
+M = np.matmul(N,C)
+M_transp = M.T
+
+# aqui tá certo o tipo e o shape
+# print(type(M))
+# print(M.shape)
+
+#print(M)
+#print(M_transp)
+
+# membro e membro transposto do elemento 1
+# ao fazer a seleção dá erro, pois não considera mais como matriz (ver linha 153)
+M_e1 = M[:,0]
+M_transp_e1 = M_transp[0,:]
+
+# ao printar o shape pode-se ver que a matriz está com dimensão errada
+#print(type(M_e1))
+#print(M_e1.shape)
+
+#print(M_e1)
+#print(M_transp_e1)
+
+# Calculando matriz S
+
+# área transversal e1
+A_e1 = Inc[0][2]
+# módulo de elasticidade e1
+E_e1 = Inc[0][3]
+# comprimento do e1
+L_e1 = np.linalg.norm(M_e1)
+
+# Rigidez
+k = (A_e1 * E_e1) / L_e1
+
+mat_s = k * np.matmul(M_e1,M_transp_e1)/abs(M_e1)**2
+
+#print(mat_s)
+
+# Calculando matriz rigidez e1 
+C_e1 = C[:,0]
+C_transp_e1 = C_transp[:,0]
+
+#print(C_e1)
+#print(C_transp_e1)
+
+mat_k = np.kron(np.matmul(C_e1, C_transp_e1), mat_s)
+
+#print(mat_k)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#-------------------------------------------------------------
+# def calculaL(x1, x2, y1, y2):
+#     L = np.sqrt(((x2-x1)**2) + ((y2-y1)**2))
+#     return L
 
 # L = np.linalg.norm(membros)
 # print(L)
@@ -151,5 +221,5 @@ def calculaL(x1, x2, y1, y2):
 
 # def matriz_se(e, a, l, m, e):
 #     return ((e*a)/l) * ((m_e*m_e.transpose())/(abs(m_e)**2))
-
+#-------------------------------------------------------------
 
