@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.linalg import cond
 import xlrd
 # import matplotlib as mpl
 # import matplotlib.pyplot as plt
@@ -126,7 +127,6 @@ A = Inc[0, 3]
 
 # Matriz de Conectividade -> recebe um excel com os valores de incidência e retorna matrizes normal e transposta.
 
-
 def matriz_conect(Inc, N):
     C = np.zeros((len(Inc), len(N[0])))
     for i in range(0, len(Inc)):
@@ -135,7 +135,6 @@ def matriz_conect(Inc, N):
     return(C)
 
 # Matriz de Membros ->
-
 
 def matriz_membros(N, C):
     M = np.matmul(N, C)
@@ -146,8 +145,7 @@ C = matriz_conect(Inc, N)
 membros = matriz_membros(N, C)
 # print("Membros", membros)
 
-# Cálculo de compri ->
-
+# Cálculo de comprimento dos elementos -> L
 
 def calculaL(membros):
     col = np.shape(membros)[1]
@@ -166,8 +164,8 @@ mat_L = calculaL(membros)
 
 ####################################
 
-# Matriz de Rigidez -> recebe um excel com os valores de incidência e retorna matrizes normal e transposta.
 
+# Matriz de Rigidez -> recebe um excel com os valores de incidência e retorna matrizes normal e transposta.
 
 def matriz_Ke(matriz_L, C, membros, area, elast, nn):
     col = np.shape(membros)[1]
@@ -192,17 +190,55 @@ def matriz_Ke(matriz_L, C, membros, area, elast, nn):
 
     return kg, ke
 
+kg, ke = matriz_Ke(mat_L, C, membros, A, E, nn)
 
-print(R)
+def cond_contorno(kg,R):
+    if np.shape(kg)[1] == 1:
+        return np.delete(kg, list(R[:,0].astype(int)),axis=0)
 
-# def cond_contorno(Kg,R):
-#     if np.shape(Kg)[1] == 1:
-#         return np.delete(Kg, list(R[:,0].astype(int)),axis=0)
-#     '''
-#     elimino os graus de liberdade que estao com restricao
-#     ao aplicar as condicoes de contorno
-#     '''
-#     return np.delete(np.delete(Kg, list(R[:,0].astype(int)),axis=0), list(R[:,0].astype(int)),axis=1)
+    return np.delete(np.delete(kg, list(R[:,0].astype(int)),axis=0), list(R[:,0].astype(int)),axis=1)
+
+kgcc = cond_contorno(kg, R)
+fcc = cond_contorno(F, R)
+print(kgcc, fcc)
+
+def jacobi(a, b, tol):
+    lin = np.shape(a)[0]
+    col = np.shape(a)[1]
+    desloc = np.zeros((lin,1))
+    desloc_new = np.zeros((lin,1))
+    p = 100 # pq 100?
+
+    for i in range(p):
+        for l in range(lin):
+            for c in range(col):
+                if c != l:
+                    desloc_new[l] = a[l][c]*desloc[c]
+
+            desloc_new[l] += (b[l] - desloc_new[l])/a[l,l]
+        
+        err = max(abs((desloc_new-desloc)/desloc_new))
+        desloc = np.copy(desloc_new)
+        # xnew.fill(0) ??????????
+        if err<=tol:
+            print('Conv ',i)
+            break
+    return desloc
+
+u = jacobi(kgcc , fcc, 1e-10)
+print(u)
+
+def desloc_complt(R, desloc):
+    u_c = np.zero((len(R)+len(desloc),1))
+    r = list(R[:,0].astype(int))
+    var = 0 
+
+    for i in range (len(u_c)):
+        if i not in r:
+            u_c[i] = desloc[var]
+            var += 1
+    return u_c
+
 
 # não funciona com C.transpose
 # c_transp = c.transpose()
