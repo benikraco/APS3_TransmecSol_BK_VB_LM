@@ -1,3 +1,4 @@
+from numpy.core.numeric import indices
 from numpy.linalg import cond
 import numpy as np
 import math
@@ -127,7 +128,7 @@ def geraSaida(nome, Ft, Ut, Epsi, Fi, Ti):
 
 
 # Matriz de Conectividade -> recebe um excel com os valores de incidência e retorna matrizes normal e transposta.
-    d`-777ef matriz_conect(Inc, nn, nm):
+def matriz_conect(Inc, nn, nm):
     C = np.zeros((nn, nm))
     for i in range(len(Inc)):
         C[int(Inc[i][0]) - 1][i] = -1
@@ -150,12 +151,6 @@ def calculaL(membros):
         L[j] = np.linalg.norm(membros[:, j])
     return L
 
-
-####################################
-
-# NAO ESQUECER DE FAZER O CALCULO TRIGONOMETRICO
-
-####################################
 
 
 # Matriz de Rigidez -> recebe um excel com os valores de incidência e retorna matrizes normal e transposta.
@@ -216,10 +211,15 @@ def jacobi(a, b, tol):
 
 def calc_ang_elemts(N, membros, L):
     col = np.shape(membros)[1]
-    result = np.zeros(col, 4)
+    result = np.zeros((col, 4))
 
     for i in range(col):
-        
+        result[i,2] = (membros[0,i])/L[i]
+        result[i,0] = -result[i,2]
+        result[i,3] = (membros[1,i])/L[i]
+        result[i,1] = -result[i,3]
+    return result
+
 
 
 
@@ -233,5 +233,31 @@ def desloc_complt(R, desloc):
             u_c[i] = desloc[var]
             var += 1
     return u_c
+
+def calc_deformacao(L, desloc_complt, ele_angs):
+    deform_list= np.zeros((len(L), 1))
+    
+    for i in range(len(L)):
+        start = 2*i
+        values = []
+        end = 0
+        for j in range(4):
+            if start+j >= len(desloc_complt):
+                values.append(end)
+                end+=1
+            else:
+                values.append(start+j)
+        d= (1/L[i])*(ele_angs[i]@desloc_complt[values])
+        deform_list[i]=d[0]
+    return deform_list
+
+
+def calc_tensao(E,d):
+    return int(E)*d
+
+def calc_r_apoio(desloc_complt, kg, R):
+    R = list(R[:,0].astype(int))
+    return ((kg@desloc_complt)[R])
+
 
 
