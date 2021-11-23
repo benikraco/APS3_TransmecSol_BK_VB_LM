@@ -159,17 +159,14 @@ def matriz_Ke(matriz_L, C, membros, area, elast, nn):
     col = np.shape(membros)[1]
     lin = np.shape(membros)[0]
     se = np.zeros((2, 2))
-    kg = np.zeros((nn*2, nn*2))  # PQ *2?
+    kg = np.zeros((nn*2, nn*2))  
 
     ke_list = []
 
     for i in range(col):
         mem_e = (membros[:, i]).reshape(lin, 1)
         mem_e_t = mem_e.T
-        # Precisa do linalg.norm?
-        se = ((elast*area)/matriz_L[i]) * \
-            ((np.matmul(mem_e, mem_e_t))/(np.linalg.norm(mem_e))**2)
-        # PQ O SHAPE FICA DESSA FORMA? 2.0
+        se = ((elast*area)/matriz_L[i]) * ((np.matmul(mem_e, mem_e_t))/(np.linalg.norm(mem_e))**2)
         conect_e = C[:, i].reshape(np.shape(C)[0], 1)
         conect_e_t = conect_e.T
         ke = np.kron(np.matmul(conect_e, conect_e_t), se)
@@ -190,7 +187,7 @@ def jacobi(a, b, tol):
     col = np.shape(a)[1]
     desloc = np.zeros((lin,1))
     desloc_new = np.zeros((lin,1))
-    p = 100 # pq 100?
+    p = 100 
 
     for i in range(p):
         for l in range(lin):
@@ -202,7 +199,6 @@ def jacobi(a, b, tol):
         
         err = max(abs((desloc_new-desloc)/desloc_new))
         desloc = np.copy(desloc_new)
-        # xnew.fill(0) ??????????
         if err<=tol:
             print('Conv ',i)
             break
@@ -234,19 +230,11 @@ def desloc_complt(R, desloc):
             var += 1
     return u_c
 
-def calc_deformacao(L, desloc_complt, ele_angs):
+def calc_deformacao(L, Inc, desloc_complt, ele_angs):
     deform_list= np.zeros((len(L), 1))
     
     for i in range(len(L)):
-        start = 2*i
-        values = []
-        end = 0
-        for j in range(4):
-            if start+j >= len(desloc_complt):
-                values.append(end)
-                end+=1
-            else:
-                values.append(start+j)
+        values = [(int(Inc[i, 0])-1)*2, (int(Inc[i, 0])-1)*2 +1, (int(Inc[i, 1])-1)*2, int(Inc[i, 1]-1)*2 +1]
         d= (1/L[i])*(ele_angs[i]@desloc_complt[values])
         deform_list[i]=d[0]
     return deform_list
@@ -254,6 +242,9 @@ def calc_deformacao(L, desloc_complt, ele_angs):
 
 def calc_tensao(E,d):
     return int(E)*d
+
+def forca_int(A, tensao):
+    return tensao * A
 
 def calc_r_apoio(desloc_complt, kg, R):
     R = list(R[:,0].astype(int))
